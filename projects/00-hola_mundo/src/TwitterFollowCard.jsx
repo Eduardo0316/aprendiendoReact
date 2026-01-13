@@ -1,4 +1,3 @@
-import { use } from "react"
 import { useState } from "react"
 
 export function TwitterFollowCard({children, formatUserName, userName = 'unknown', initialIsFollowing}){
