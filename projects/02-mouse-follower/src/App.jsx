@@ -4,6 +4,7 @@ const FollowMouse = () => {
   const [enabled, setEnabled] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 })
 
+  //Efecto del pointer move
   useEffect(() => {
     console.log('efecto ', { enabled })
 
@@ -25,6 +26,19 @@ const FollowMouse = () => {
       window.removeEventListener('pointermove', handleMove)
     }
     //Aparte ps esto hace que nos deje de seguir el mouse xd
+  }, [enabled])
+
+  // [] -> se ejecuta una vez cuando se renderiza el componente
+  // [enabled] -> se ejecuta cada vez que cambia enabled y cuando se monta el componente
+  // undefined -> se ejecuta cada vez que se renderiza el componente
+
+  //Change body className
+  useEffect(() =>{
+    document.body.classList.toggle('no-cursor', enabled)
+
+    return () => {
+      document.body.classList.toggle('no-cursor')
+    }
   }, [enabled])
   
   return (
