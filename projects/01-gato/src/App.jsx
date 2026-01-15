@@ -1,60 +1,32 @@
 import { useState } from "react"
 import confetti from "canvas-confetti"
-
-const TURNS = {
-  X: 'x',
-  O: 'o'
-}
-
-const Square = ({ children, isSelected, updateBoard, index }) => {
-  const className = `square ${isSelected ? 'is-selected' : ''}`
-  const handleClick = () => {
-    updateBoard(index)
-  }
-  return (
-    <div onClick={handleClick} className={className}>
-      {children}
-    </div>
-  )
-}
-
-const WINNER_COMBOS = [
-  [0, 1, 2], [3, 4, 5], [6, 7, 8],
-  [0, 3, 6], [1, 4, 7], [2, 5, 8],
-  [0, 4, 8], [2, 4, 6]
-]
+import { Square } from "./components/Square.jsx"
+import { TURNS } from "./constants.jsx"
+import { checkWinnerFrom, checkEndGame } from "./logic/board.js"
+import { WinnerModal } from "./components/WinnerModal.jsx"
+import { resetGameStorage, saveGameToStorage } from "./logic/saveGame/index.js"
 
 function App() {
-  const [board, setBoard] = useState(Array(9).fill(null))
-  const [turn, setTurn] = useState(TURNS.X)
+  const [board, setBoard] = useState(() => {
+    const boardFromStorage = window.localStorage.getItem('board')
+    if (boardFromStorage) return JSON.parse(boardFromStorage)
+    return Array(9).fill(null)
+  })
+
+  const [turn, setTurn] = useState(() => {
+    const turnLocalStorage = window.localStorage.getItem('turn')
+    return turnLocalStorage ?? TURNS.X
+  })
   //null no hay ganador false hay empate
   const [winner, setWinner] = useState(null)
-  const checkWinner = (boardToCheck) =>{
-    for (const combo of WINNER_COMBOS) {
-      const [a, b, c] = combo
-      if (
-        //Si la primer, segunda y tercera pos. tienen
-        //el mismo caracter es pq gana
-        boardToCheck[a] && 
-        boardToCheck[a] === boardToCheck[b] &&
-        boardToCheck[a] === boardToCheck[c]
-      ) {
-        return boardToCheck[a]
-      }
-    }
-    //Si no hay ganador
-    return null
-  }
 
   const resetGame = () => {
+    //Solo reinicia los estados iniciales
     setBoard(Array(9).fill(null))
     setTurn(TURNS.X)
     setWinner(null)
-  }
 
-  const checkEndGame = (newBoard) => {
-    //Revisamos si hay empate, espacios vacios
-    return newBoard.every((square) => square !== null)
+    resetGameStorage()
   }
 
   const updateBoard = (index) => {
@@ -70,8 +42,11 @@ function App() {
     const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X
     setTurn(newTurn)
 
+    //Guardar partida
+    saveGameToStorage({board: newBoard, turn: newTurn})
+
     //revisar si no hay ganador
-    const newWinner = checkWinner(newBoard)
+    const newWinner = checkWinnerFrom(newBoard)
     if(newWinner) {
       setWinner(newWinner)
       confetti()
@@ -109,27 +84,7 @@ function App() {
           </Square>
         </section>
 
-        {
-          winner !== null && (
-            <section className="winner">
-              <div className="text">
-                <h2>
-                  {
-                    winner === false
-                      ? 'Empate'
-                      : 'Gano:'
-                  }
-                </h2>
-
-                <header className="win">
-                  {winner && <Square>{winner}</Square>}
-                </header>
-
-                <button onClick={resetGame}>Empezar de nuevo</button>
-              </div>
-            </section>
-          )
-        }
+        <WinnerModal resetGame={resetGame} winner={winner}/>
     </main>
   )
 }
