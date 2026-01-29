@@ -17,9 +17,7 @@ export function App() {
             <h1>App de gatitos</h1>
             {fact && <p>{fact}</p>}
             {imageURL && <img src={imageURL} alt={`Image extracted 
-                using first three words for ${fact} `} />}
-
-            <Otro />           
+                using first three words for ${fact} `} />}          
         </main>        
     )
 }
